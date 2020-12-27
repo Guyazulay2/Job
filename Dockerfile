@@ -9,9 +9,6 @@ RUN apt update \
     && apt-get install vim -y \
     && apt-get install zip unzip -y
 
-
 COPY zip_job.py /tmp
 
-
-
-
+ENTRYPOINT [ "ls", "/tmp" ]
