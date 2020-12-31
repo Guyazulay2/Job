@@ -1,0 +1,55 @@
+משימת בית : 
+אציין שהיה לי מאוד מאתגר וכיף לעשות את המשימה.
+בגדול לא השתמשתי הרבה ב jenkinsfiles ולמדתי את זה רק משבוע שעבר יותר לעומק, ( לקח לי בערך 17 שעות לעשות
+הכל אני גם עובד כרגע אז השתדלתי לשלב תוך כדי ולסיים כמה שיותר מהר )
+
+
+השלבים: 
+שלב ראשון :
+1.   בניית ה Dockerfile .
+
+שלב שני :
+2.   יצירת ה Zip_job script .
+
+שלב שלישי :
+3. Jenkinsfiles declarative,scripted .
+
+-----------------
+
+declarative : הגדרתי לו ב Agent שיקח את ה Dockerfile ואת הסקריפט שיצרתי בשלב השני ששמתי בסרבר ביחד עם ה Dockerfile .
+במקרה הזה בחרתי בתיקייה של הפרוייקט בסרבר ככה שיקח אוטומטי משם.
+לאחר הבנייה שלו הוא יוצר קונטיינר נכנס לתוכו ב build stage הוא מפעיל את ה script מייצר את ה Zip_files ובודק אם יצר אותם או לא 
+עם Try&Catch.
+
+שלב ה Upload : 
+הגדרתי לו ב  Jenkins manager ב Artifactory את ה server ID user pass וכו.
+לאחר מכן מעלה אותם ל repo שיצרתי.
+
+report stage: מגדיר ב Jenkins email notification מדווח status למייל.
+
+cleanup stage: מנקה את ה WorkSpace. 
+במידה וה job נפל הוא לא מנקה
+
+------------------
+
+scripted : גם שמתי בjenkins server את הסקריפט וה Dockerfile ב Path של הפרוייקט במקום להשתמש באופצייה של git checkout או משהו כזה.
+
+לאחר הבנייה שלו הוא יוצר קונטיינר נכנס לתוכו ב build stage הוא מפעיל את ה script מייצר את ה Zip_files ובודק אם יצר אותם או לא 
+עם Try&Catch.
+
+שלב ה Upload : 
+הגדרתי לו ב  Jenkins manager ב Artifactory את ה server ID user pass וכו.
+לאחר מכן מעלה את הקבצים ל repo שיצרתי.
+אחרי זה הוספתי לו :  "server.upload spec: uploadSpec" שהגדרתי לו בפונקציה בתחילת הסקריפט
+
+
+report stage: מגדיר ב Jenkins email notification ומדווח status למייל.
+
+cleanup stage: מנקה את ה WorkSpace. 
+במידה וה job נפל הוא לא מנקה
+
+
+
+
+
+

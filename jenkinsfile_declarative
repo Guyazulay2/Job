@@ -1,0 +1,51 @@
+pipeline {
+    agent {
+        dockerfile {
+            filename 'Dockerfile'
+            args '-u 0:0 --privileged'
+        }
+    }
+    stages {
+        stage('Build') {
+            steps{
+                script {
+                    try {
+                        echo 'Running Zip_job script ..'
+                        sh 'python3 /tmp/zip_job.py'
+                    } catch (error){
+                        echo "The Files not created ${error}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+        stage ('Upload') {
+            steps {
+                rtUpload (
+                    serverId: SERVER_ID
+                    spec: '''{
+                              "files": [
+                                {
+                                    "pattern": "/tmp/*.zip",
+                                    "target": "binary-storage/${VERSION}"
+                                } 
+                             ]
+                        }'''    
+                    )
+            }
+        }
+        stage('Report') {
+            steps {
+                mail from: "guykort98@gmail.com",
+                    to: "guykort98@gmail.com",
+                    subject: 'Pipeline' + ": " + currentBuild.result,
+                    body: "Console Log: "  + env.BUILD_URL + "console" +
+                        "\nResult: " + currentBuild.result
+            }
+        }
+        stage('Cleanup') {
+            echo '** Clean WS **'
+            cleanWs cleanWhenAborted: false, cleanWhenFailure: false, cleanWhenNotBuilt: false, cleanWhenUnstable: false
+        }
+    }
+}

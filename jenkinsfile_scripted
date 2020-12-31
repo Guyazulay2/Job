@@ -1,0 +1,72 @@
+node {
+    def server = Artifactory.server "SERVER_ID"
+    def app = docker.build("zip_job")
+
+    stage('Build') {
+        app.inside {
+            try {
+                sh 'cd /tmp && python3 /tmp/zip_job.py'
+            } catch (err) {
+                currentBuild.result = 'FAILURE'
+                echo "Build Test failed: ${err.getMessage()}"
+                error "Failed during Build (Check Logs)"
+            }
+        }
+    }
+
+    stage('Upload') {
+        app.inside {
+            def uploadSpec =
+                '''{
+                    "files": [
+                        {
+                            "pattern": "/tmp/*.zip",
+                            "target": "binary-storage/${env.VERSION}"
+                        }
+                    ]
+            }'''
+            server.upload spec: uploadSpec         
+        }
+    }
+
+    stage('Report') {
+        app.inside {
+            emailext attachLog: true, body: "${currentBuild.result}: ${BUILD_URL}", compressLog: true, replyTo: 'guykort98@gamil.com',
+                subject: "Build Notification: ${JOB_NAME}-Build# ${BUILD_NUMBER} ${currentBuild.result}", to: 'guykort98@gmail.com'
+        }
+    }
+    
+
+    stage('CleanUp') {
+        app.inside {
+            cleanWs cleanWhenAborted: false, cleanWhenFailure: false, cleanWhenNotBuilt: false, cleanWhenUnstable: false
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+pipeline {
+    agent any
+    stages {
+        stage('Email') {
+            steps{
+                script {
+                    mail to: 'mymail@gmail.com',
+                    cc : 'ccedpeople@gamil.com'
+                    subject: "SUCCESSFUL: Build ${env.JOB_NAME}", 
+                    body: "Build Successful ${env.JOB_NAME} build no: ${env.BUILD_NUMBER}\n\nView the log at:\n ${env.BUILD_URL}\n\nBlue Ocean:\n${env.RUN_DISPLAY_URL}"
+                }
+            }
+        }
+    }
+}
